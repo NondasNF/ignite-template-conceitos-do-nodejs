@@ -51,22 +51,38 @@ app.post('/todos', (request, response) => {
       created_at: new Date()
     }
     users.find(user => user.username === username).todos.push(todo);
+    return response.status(201).json(todo);
   }
-  return response.status(201).json(todo);
+  return response.status(404).json({ error: 'User not found' });
 });
 
 app.put('/todos/:id', (request, response) => {
   let { id } = request.params;
   let { username } = request.headers;
   let { title, deadline } = request.body;
-  let user = users.find(user => user.username == username)
-  let todo = user.todos.find(todo => todo.id == id)
-  todo = {...todo, title, deadline: new Date(deadline)}
-  return response.status(201).json(todo);
+  if (checksExistsUserAccount(request.headers)){
+    let user = users.find(user => user.username == username)
+    let todo = user.todos.find(todo => todo.id == id)
+    todo = {...todo, title, deadline: new Date(deadline)}
+    return response.status(201).json(todo);
+  }
+  return response.status(404).json({ error: 'Todo not found' });
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+app.patch('/todos/:id/done', (request, response) => {
+  let { id } = request.params;
+  let { username } = request.headers;
+  if (checksExistsUserAccount(request.headers)){
+    let user = users.find(user => user.username == username)
+    let todo = user.todos.find(todo => todo.id == id)
+    if (todo) { 
+    todo.done = true;
+      return response.status(201).json(todo);
+    } else {
+      return response.status(404).json({ error: 'Todo not found' });
+    }
+  }
+  return response.status(404).json({error: 'User not found'})
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
