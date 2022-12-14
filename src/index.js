@@ -55,8 +55,14 @@ app.post('/todos', (request, response) => {
   return response.status(201).json(todo);
 });
 
-app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  
+app.put('/todos/:id', (request, response) => {
+  let { id } = request.params;
+  let { username } = request.headers;
+  let { title, deadline } = request.body;
+  let user = users.find(user => user.username == username)
+  let todo = user.todos.find(todo => todo.id == id)
+  todo = {...todo, title, deadline: new Date(deadline)}
+  return response.status(201).json(todo);
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
